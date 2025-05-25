@@ -29,6 +29,7 @@ yarn start
 src/ — исходные файлы проекта
 src/components/ — папка с JS компонентами
 src/components/base/ — папка с базовым кодом
+
 Важные файлы:
 
 src/pages/index.html — HTML-файл главной страницы
@@ -167,7 +168,7 @@ src/utils/utils.ts — файл с утилитами
 
 ---
 
-### Типы данных (кратко)
+### Типы данных 
 
 - **Product:** id, title, description, image, price, category
 - **CartItem:** product, quantity
