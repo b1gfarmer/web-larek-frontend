@@ -1,3 +1,4 @@
+
 import type { CartItem } from './cart';
 
 export type PaymentType = 'card' | 'cash';
