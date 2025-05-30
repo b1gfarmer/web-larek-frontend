@@ -4,7 +4,7 @@
 .modal {
   @include mixins.sublayer;
   // height: max-content;
-  position: absolute;
+  position: fixed;
   display: none;
   justify-content: center;
   background-color: $overlayBackground;
@@ -68,32 +68,4 @@
       color: $error;
     }
   }
-}
-
-
-.modal {
-  display: none;          
-  position: fixed;        
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;         
-  overflow: auto;         
-}
-
-
-.modal_active {
-  display: flex;
-}
-
-
-.modal__content {
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-  border-radius: 8px;
-  padding: 20px;
-  overflow: auto;
 }

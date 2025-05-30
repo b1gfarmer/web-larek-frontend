@@ -1,4 +1,4 @@
-//components/base/api.ts
+
 export type ApiListResponse<Type> = {
     total: number,
     items: Type[]

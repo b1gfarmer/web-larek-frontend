@@ -85,30 +85,8 @@
   }
 }
 
-// пример для разных категорий:
-.card__category--софт-скил,
-.card__category--soft-skil {
-  background-color: #80ffa0;
-}
-
-.card__category--другое,
-.card__category--drugoe {
-  background-color: #ffe080;
-}
-
-.card__category--кнопка,
-.card__category--knopka {
-  background-color: #80d0ff;
-}
-
-.card__category--хард-скил,
-.card__category--hard-skil {
-  background-color: #ff8080;
-}
-
-.card__category--дополнительное,
-.card__category--dopolnitelnoe {
-  background-color: #ffe080; // или другой желаемый цвет
-}
-
-// и т.д. — под остальные категории
+.card__category--soft         { background-color: #80ffa0; }
+.card__category--hard         { background-color: #ff8080; }
+.card__category--other        { background-color: #ffe080; }
+.card__category--additional   { background-color: #c080ff; }
+.card__category--button       { background-color: #80d0ff; }
