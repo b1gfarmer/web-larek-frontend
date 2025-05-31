@@ -1,11 +1,19 @@
 
 export class SuccessView {
-  constructor(
-    private container: HTMLElement,
-    private onClose: () => void
-  ) {}
+  private container: HTMLElement;
+  private onCloseCallback: () => void = () => {};
 
-  render(total: number) {
+  constructor(container: HTMLElement) {
+    this.container = container;
+  }
+
+  /** Presenter подписывается, чтобы закрыть модалку по кнопке «За новыми покупками!» */
+  onClose(callback: () => void): void {
+    this.onCloseCallback = callback;
+  }
+
+  /** Отрисовать сообщение об успешном заказе */
+  render(total: number): void {
     this.container.innerHTML = `
       <div class="order-success">
         <h2 class="order-success__title">Заказ оформлен</h2>
@@ -13,7 +21,7 @@ export class SuccessView {
         <button class="button order-success__close">За новыми покупками!</button>
       </div>
     `;
-    this.container.querySelector('button.order-success__close')!
-      .addEventListener('click', () => this.onClose());
+    const btnClose = this.container.querySelector('button.order-success__close') as HTMLButtonElement;
+    btnClose.addEventListener('click', () => this.onCloseCallback());
   }
 }

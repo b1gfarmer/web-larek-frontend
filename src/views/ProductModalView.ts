@@ -1,11 +1,21 @@
 
-
 import type { Product } from '../types/product';
 
 export class ProductModalView {
-  constructor(private container: HTMLElement, private onAdd: (id: string) => void) {}
+  private container: HTMLElement;
+  private onAddCallback: (id: string) => void = () => {};
 
-  render(product: Product) {
+  constructor(container: HTMLElement) {
+    this.container = container;
+  }
+
+  /** Позволяет Presenter-у подписаться на «Добавить в корзину» */
+  onAddToCart(callback: (id: string) => void): void {
+    this.onAddCallback = callback;
+  }
+
+  /** Рисует полную карточку товара в модалке */
+  render(product: Product): void {
     this.container.innerHTML = '';
     const card = document.createElement('div');
     card.className = 'card card_full';
@@ -21,8 +31,8 @@ export class ProductModalView {
         </div>
       </div>
     `;
-    card.querySelector('button.card__button')!
-      .addEventListener('click', () => this.onAdd(product.id));
+    const btn = card.querySelector('button.card__button') as HTMLButtonElement;
+    btn.addEventListener('click', () => this.onAddCallback(product.id));
     this.container.appendChild(card);
   }
 }

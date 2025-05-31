@@ -1,36 +1,53 @@
 
 export class ContactsView {
-  constructor(
-    private container: HTMLElement,
-    private onSubmit: (email: string, phone: string) => void
-  ) {}
+  private container: HTMLElement;
+  private onSubmitCallback: (email: string, phone: string) => void = () => {};
 
-  render() {
+  constructor(container: HTMLElement) {
+    this.container = container;
+  }
+
+  /** Presenter подписывается, чтобы получить email и phone */
+  onSubmit(callback: (email: string, phone: string) => void): void {
+    this.onSubmitCallback = callback;
+  }
+
+  /** Отрисовка формы ввода Email/Телефон */
+  render(): void {
     this.container.innerHTML = `
-      <form class="form">
-        <label class="order__field">
-          <span class="form__label modal__title">Email</span>
-          <input name="email" class="form__input" type="email" />
-        </label>
-        <label class="order__field">
-          <span class="form__label modal__title">Телефон</span>
-          <input name="phone" class="form__input" type="tel" />
-        </label>
+      <form class="form" name="contacts">
+        <div class="order">
+          <label class="order__field">
+            <span class="form__label modal__title">Email</span>
+            <input name="email" class="form__input" type="email" />
+          </label>
+          <label class="order__field">
+            <span class="form__label modal__title">Телефон</span>
+            <input name="phone" class="form__input" type="tel" />
+          </label>
+        </div>
         <div class="modal__actions">
           <button type="submit" disabled class="button">Оплатить</button>
+          <span class="form__errors"></span>
         </div>
       </form>
     `;
-    const form = this.container.querySelector('form')!;
-    const email = form.querySelector('input[name="email"]') as HTMLInputElement;
-    const phone = form.querySelector('input[name="phone"]') as HTMLInputElement;
-    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-    const validate = () => { btn.disabled = !(email.value.trim() && phone.value.trim()); };
-    email.addEventListener('input', validate);
-    phone.addEventListener('input', validate);
+
+    const form = this.container.querySelector('form') as HTMLFormElement;
+    const emailInput = form.querySelector('input[name="email"]') as HTMLInputElement;
+    const phoneInput = form.querySelector('input[name="phone"]') as HTMLInputElement;
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+    const validate = () => {
+      submitBtn.disabled = !(emailInput.value.trim() && phoneInput.value.trim());
+    };
+
+    emailInput.addEventListener('input', validate);
+    phoneInput.addEventListener('input', validate);
+
     form.addEventListener('submit', e => {
       e.preventDefault();
-      this.onSubmit(email.value.trim(), phone.value.trim());
+      this.onSubmitCallback(emailInput.value.trim(), phoneInput.value.trim());
     });
   }
 }
