@@ -1,12 +1,12 @@
 
+
 import { Api } from './components/base/api';
 import type { Product } from './types/product';
-import type { Order } from './types/order';
-import type { ApiClient, OrderResponse } from './types/api';
+import type { Order, OrderResponse } from './types/order';
 
 const baseUrl = 'https://larek-api.nomoreparties.co/api/weblarek';
 
-class ApiClientImpl implements ApiClient {
+class ApiClientImpl {
   private api: Api;
 
   constructor() {
@@ -19,7 +19,7 @@ class ApiClientImpl implements ApiClient {
 
     return items.map((item) => ({
       ...item,
-      image: `https://larek-api.nomoreparties.co/content/weblarek${item.image}`, 
+      image: `https://larek-api.nomoreparties.co/content/weblarek${item.image}`,
     }));
   }
 
