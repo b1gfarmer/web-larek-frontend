@@ -1,35 +1,32 @@
 import type { Product } from '../types/product';
-import type { ApiClient } from '../types/api';
 
 /**
- * Модель для загрузки и хранения списка продуктов.
- * Использует ApiClient для получения данных и уведомляет об обновлениях через onUpdate.
+ * Модель для хранения списка продуктов.
+ * Теперь не делает запросы, а лишь сохраняет данные по setProducts().
  */
 export class ProductsModel {
-  private apiClient: ApiClient;
   private products: Product[] = [];
 
   /**
-   * Колбэк, вызываемый при обновлении списка продуктов.
-   * Подписывать нужно до вызова load().
+   * Коллбэк, вызываемый при обновлении списка продуктов.
+   * Подписывать нужно до вызова setProducts().
    */
-  public onUpdate: (products: Product[]) => void = () => {};
+  public onUpdate?: (products: Product[]) => void;
 
-  constructor(apiClient: ApiClient) {
-    this.apiClient = apiClient;
-  }
+  constructor() {}
 
   /**
-   * Загружает продукты с сервера и уведомляет подписчика.
+   * Устанавливает список продуктов и уведомляет подписчика.
    */
-  async load(): Promise<void> {
-    const items = await this.apiClient.getProducts();
+  setProducts(items: Product[]): void {
     this.products = items;
-    this.onUpdate(this.products);
+    if (this.onUpdate) {
+      this.onUpdate(this.products);
+    }
   }
 
   /**
-   * Возвращает копию массива всех загруженных продуктов.
+   * Возвращает копию массива всех сохранённых продуктов.
    */
   getAll(): Product[] {
     return [...this.products];

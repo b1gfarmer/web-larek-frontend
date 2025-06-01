@@ -7,26 +7,33 @@ export class CartModel {
   private items: CartItem[] = [];
 
   /**
-   * Коллбэк при обновлении содержимого корзины
+   * Коллбэк при обновлении содержимого корзины; 
+   * его нужно обязательно установить извне перед использованием.
    */
-  public onUpdate: (items: CartItem[]) => void = () => {};
+  public onUpdate?: (items: CartItem[]) => void;
 
-  /** Добавляет элемент и триггерит onUpdate */
+  /** Добавляет элемент и, если onUpdate задан, вызывает его */
   add(item: CartItem) {
     this.items.push(item);
-    this.onUpdate(this.getItems());
+    if (this.onUpdate) {
+      this.onUpdate(this.getItems());
+    }
   }
 
-  /** Удаляет элемент по productId */
+  /** Удаляет элемент по productId и вызывает onUpdate, если он задан */
   remove(productId: string) {
     this.items = this.items.filter(i => i.productId !== productId);
-    this.onUpdate(this.getItems());
+    if (this.onUpdate) {
+      this.onUpdate(this.getItems());
+    }
   }
 
-  /** Очищает корзину */
+  /** Очищает корзину и вызывает onUpdate, если он задан */
   clear() {
     this.items = [];
-    this.onUpdate(this.getItems());
+    if (this.onUpdate) {
+      this.onUpdate(this.getItems());
+    }
   }
 
   /** Возвращает копию массива элементов */

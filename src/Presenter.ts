@@ -15,6 +15,12 @@ import { ContactsView } from './views/ContactsView';
 import { SuccessView } from './views/SuccessView';
 import Modal from './components/base/Modal';
 
+interface CartViewItem {
+  productId: string;
+  title: string;
+  price: number;
+}
+
 export class Presenter {
   private productsModel: ProductsModel;
   private cartModel: CartModel;
@@ -30,7 +36,7 @@ export class Presenter {
   private modal: Modal;
 
   constructor() {
-    this.productsModel = new ProductsModel(apiClient);
+    this.productsModel = new ProductsModel();
     this.cartModel = new CartModel();
     this.orderModel = new OrderModel();
 
@@ -39,22 +45,37 @@ export class Presenter {
     this.headerView = new HeaderView('.header__container');
     this.catalogView = new CatalogView('.gallery');
     this.productModalView = new ProductModalView(this.modal.content);
+
+    // Создаём CartView только с контейнером
     this.cartView = new CartView(this.modal.content);
+
     this.orderView = new OrderView(this.modal.content);
     this.contactsView = new ContactsView(this.modal.content);
     this.successView = new SuccessView(this.modal.content);
   }
 
   init(): void {
+    // Подписка моделей → View
     this.productsModel.onUpdate = (products: Product[]) => {
       this.catalogView.render(products);
     };
 
     this.cartModel.onUpdate = (items: CartItem[]) => {
       this.headerView.updateCounter(items.length);
-      this.cartView.render(items, this.productsModel.getAll());
+
+      // Формируем viewItems и передаём их в CartView
+      const viewItems: CartViewItem[] = items.map(i => {
+        const prod = this.productsModel.getById(i.productId)!;
+        return {
+          productId: i.productId,
+          title: prod.title,
+          price: prod.price
+        };
+      });
+      this.cartView.render(viewItems);
     };
 
+    // View → Presenter
     this.catalogView.onProductClick((productId: string) => {
       const product = this.productsModel.getById(productId);
       if (!product) return;
@@ -68,14 +89,23 @@ export class Presenter {
     });
 
     this.headerView.onOpenBasket(() => {
-      this.cartView.render(this.cartModel.getItems(), this.productsModel.getAll());
+      const items = this.cartModel.getItems();
+      const viewItems: CartViewItem[] = items.map(i => {
+        const prod = this.productsModel.getById(i.productId)!;
+        return {
+          productId: i.productId,
+          title: prod.title,
+          price: prod.price
+        };
+      });
+      this.cartView.render(viewItems);
       this.modal.open();
     });
 
+    // Подписываемся на события из CartView:
     this.cartView.onRemoveItem((productId: string) => {
       this.cartModel.remove(productId);
     });
-
     this.cartView.onCheckout(() => {
       this.orderView.render();
       this.modal.open();
@@ -104,8 +134,8 @@ export class Presenter {
       }
 
       const total = filteredItems.reduce((sum, item) => {
-        const prod = this.productsModel.getById(item.productId);
-        return sum + (prod?.price || 0);
+        const prod = this.productsModel.getById(item.productId)!;
+        return sum + prod.price;
       }, 0);
 
       const orderPayload = this.orderModel.getOrder(filteredItems, total);
@@ -118,7 +148,9 @@ export class Presenter {
         this.modal.open();
       } catch (err) {
         this.contactsView.showError(
-          typeof err === 'string' ? err : 'Ошибка при оформлении заказа. Попробуйте позже.'
+          typeof err === 'string'
+            ? err
+            : 'Ошибка при оформлении заказа. Попробуйте позже.'
         );
         console.error('[ERROR] Ошибка при отправке заказа:', err);
       }
@@ -128,6 +160,15 @@ export class Presenter {
       this.modal.close();
     });
 
-    this.productsModel.load();
+    this.loadAndSetProducts();
+  }
+
+  private async loadAndSetProducts(): Promise<void> {
+    try {
+      const items = await apiClient.getProducts();
+      this.productsModel.setProducts(items);
+    } catch (err) {
+      console.error('[ERROR] Не удалось загрузить продукты:', err);
+    }
   }
 }

@@ -1,4 +1,3 @@
-
 import './scss/styles.scss';
 import { Presenter } from './Presenter';
 
