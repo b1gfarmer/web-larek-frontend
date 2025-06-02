@@ -1,38 +1,32 @@
-
 import type { Product } from '../types/product';
+import { ProductModalCardView } from './ProductModalCardView';
 
 export class ProductModalView {
-  private container: HTMLElement;
-  private onAddCallback: (id: string) => void = () => {};
+  public container: HTMLElement;
+  private currentCard: ProductModalCardView | null = null;
 
   constructor(container: HTMLElement) {
     this.container = container;
   }
 
-  /** Позволяет Presenter-у подписаться на «Добавить в корзину» */
-  onAddToCart(callback: (id: string) => void): void {
-    this.onAddCallback = callback;
+  /**
+   * Рисует карточку товара в модалке и возвращает контейнер.
+   * После вызова render() можно подписываться на onAddToCart.
+   */
+  render(product: Product): HTMLElement {
+    this.container.innerHTML = '';
+    this.currentCard = new ProductModalCardView(product);
+    this.container.appendChild(this.currentCard.render());
+    return this.container;
   }
 
-  /** Рисует полную карточку товара в модалке */
-  render(product: Product): void {
-    this.container.innerHTML = '';
-    const card = document.createElement('div');
-    card.className = 'card card_full';
-    card.innerHTML = `
-      <img class="card__image" src="${product.image}" alt="${product.title}" />
-      <div class="card__column">
-        <span class="card__category card__category_other">${product.category}</span>
-        <h2 class="card__title">${product.title}</h2>
-        <p class="card__text">${product.description}</p>
-        <div class="card__row">
-          <button class="button card__button">В корзину</button>
-          <span class="card__price">${product.price} синапсов</span>
-        </div>
-      </div>
-    `;
-    const btn = card.querySelector('button.card__button') as HTMLButtonElement;
-    btn.addEventListener('click', () => this.onAddCallback(product.id));
-    this.container.appendChild(card);
+  /**
+   * Подписка на кнопку «В корзину».
+   * Важно: currentCard уже должен быть создан (то есть, render() должен быть вызван до onAddToCart).
+   */
+  onAddToCart(callback: (id: string) => void): void {
+    if (this.currentCard) {
+      this.currentCard.onAddToCart(callback);
+    }
   }
 }

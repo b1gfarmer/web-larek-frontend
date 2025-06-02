@@ -1,16 +1,13 @@
-
-
 export class ContactsView {
-  constructor(
-    private container: HTMLElement,
-    private onSubmitCallback: (email: string, phone: string) => void = () => {}
-  ) {}
+  private emailInput: HTMLInputElement;
+  private phoneInput: HTMLInputElement;
+  private submitBtn: HTMLButtonElement;
+  private errorSpan: HTMLElement;
 
-  onSubmit(callback: (email: string, phone: string) => void): void {
-    this.onSubmitCallback = callback;
-  }
+  private onInputCallback: (field: 'email' | 'phone', value: string) => void = () => {};
+  private onSubmitCallback: () => void = () => {};
 
-  render(): void {
+  constructor(private container: HTMLElement) {
     this.container.innerHTML = `
       <form class="form">
         <label class="order__field">
@@ -29,27 +26,45 @@ export class ContactsView {
     `;
 
     const form = this.container.querySelector('form')!;
-    const emailInput = form.querySelector('input[name="email"]') as HTMLInputElement;
-    const phoneInput = form.querySelector('input[name="phone"]') as HTMLInputElement;
-    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    this.emailInput = form.querySelector('input[name="email"]')!;
+    this.phoneInput = form.querySelector('input[name="phone"]')!;
+    this.submitBtn = form.querySelector('button[type="submit"]')!;
+    this.errorSpan = form.querySelector('.form__errors')!;
 
-    const validate = () => {
-      submitBtn.disabled = !(emailInput.value.trim() && phoneInput.value.trim());
-    };
+    this.emailInput.addEventListener('input', () => {
+      this.onInputCallback('email', this.emailInput.value.trim());
+    });
 
-    emailInput.addEventListener('input', validate);
-    phoneInput.addEventListener('input', validate);
+    this.phoneInput.addEventListener('input', () => {
+      this.onInputCallback('phone', this.phoneInput.value.trim());
+    });
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      this.onSubmitCallback(emailInput.value.trim(), phoneInput.value.trim());
+      this.onSubmitCallback();
     });
   }
 
+  onInput(callback: (field: 'email' | 'phone', value: string) => void): void {
+    this.onInputCallback = callback;
+  }
+
+  onSubmit(callback: () => void): void {
+    this.onSubmitCallback = callback;
+  }
+
+  setFormState(email: string, phone: string, isValid: boolean): void {
+    this.emailInput.value = email;
+    this.phoneInput.value = phone;
+    this.submitBtn.disabled = !isValid;
+  }
+
   showError(message: string): void {
-    const errorSpan = this.container.querySelector('.form__errors') as HTMLElement;
-    if (errorSpan) {
-      errorSpan.textContent = message;
-    }
+    this.errorSpan.textContent = message;
+  }
+
+  render(): HTMLElement {
+    return this.container;
   }
 }
+

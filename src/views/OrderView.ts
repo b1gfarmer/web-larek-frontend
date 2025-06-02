@@ -1,15 +1,18 @@
+// src/views/OrderView.ts
+
 export class OrderView {
-  private payment: 'card' | 'cash' | null = null;
-  private address: string = '';
-  private submitCallback: (payment: 'card' | 'cash', address: string) => void = () => {};
+  private container: HTMLElement;
+  private paymentButtons: NodeListOf<HTMLButtonElement>;
+  private addressInput: HTMLInputElement;
+  private submitBtn: HTMLButtonElement;
+  private selectedPayment: 'card' | 'cash' | null = null;
 
-  constructor(private container: HTMLElement) {}
+  private onInputCallback: (field: 'payment' | 'address', value: string) => void = () => {};
+  private onSubmitCallback: () => void = () => {};
 
-  onSubmit(callback: (payment: 'card' | 'cash', address: string) => void) {
-    this.submitCallback = callback;
-  }
+  constructor(container: HTMLElement) {
+    this.container = container;
 
-  render() {
     this.container.innerHTML = `
       <form class="form" name="order">
         <div class="order">
@@ -32,37 +35,64 @@ export class OrderView {
     `;
 
     const form = this.container.querySelector('form')!;
-    const buttons = form.querySelectorAll<HTMLButtonElement>('button[data-type]');
-    const addressInput = form.querySelector<HTMLInputElement>('input[name="address"]')!;
-    const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    this.paymentButtons = form.querySelectorAll('button[data-type]');
+    this.addressInput = form.querySelector('input[name="address"]')!;
+    this.submitBtn = form.querySelector('button[type="submit"]')!;
 
-    const validate = () => {
-      this.address = addressInput.value.trim();
-      submitButton.disabled = !(this.payment && this.address);
-    };
-
-    buttons.forEach(button => {
+    this.paymentButtons.forEach(button => {
       button.addEventListener('click', () => {
         const type = button.dataset.type;
         if (type === 'card' || type === 'cash') {
-          this.payment = type;
-
-          // выделим активную кнопку
-          buttons.forEach(b => b.classList.remove('button_alt-active'));
+          this.selectedPayment = type;
+          this.paymentButtons.forEach(b => b.classList.remove('button_alt-active'));
           button.classList.add('button_alt-active');
-
-          validate();
+          this.onInputCallback('payment', type);
         }
       });
     });
 
-    addressInput.addEventListener('input', validate);
+    this.addressInput.addEventListener('input', () => {
+      this.onInputCallback('address', this.addressInput.value.trim());
+    });
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (this.payment && this.address) {
-        this.submitCallback(this.payment, this.address);
+      this.onSubmitCallback();
+    });
+  }
+
+  /** Presenter подписывается на изменения полей формы */
+  onInput(callback: (field: 'payment' | 'address', value: string) => void): void {
+    this.onInputCallback = callback;
+  }
+
+  /** Presenter подписывается на нажатие «Далее» */
+  onSubmit(callback: () => void): void {
+    this.onSubmitCallback = callback;
+  }
+
+  /**
+   * Обновить состояния формы (заполненное значение + активная кнопка + валидность)
+   * @param address — текущее значение адреса
+   * @param payment  — 'card' | 'cash' | null
+   * @param isValid  — true, если оба поля заполнены валидно
+   */
+  setFormState(address: string, payment: 'card' | 'cash' | null, isValid: boolean): void {
+    this.addressInput.value = address;
+
+    this.paymentButtons.forEach(b => {
+      if (b.dataset.type === payment) {
+        b.classList.add('button_alt-active');
+      } else {
+        b.classList.remove('button_alt-active');
       }
     });
+
+    this.submitBtn.disabled = !isValid;
+  }
+
+  /** Возвращает корневой элемент для модалки */
+  render(): HTMLElement {
+    return this.container;
   }
 }

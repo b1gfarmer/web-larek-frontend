@@ -1,6 +1,6 @@
 export default class Modal {
   private root: HTMLElement;
-  public content: HTMLElement;
+  private contentContainer: HTMLElement;
   private escHandler = (e: KeyboardEvent) => {
     if (e.key === 'Escape') this.close();
   };
@@ -12,9 +12,13 @@ export default class Modal {
 
     const contentEl = this.root.querySelector('.modal__content');
     if (!contentEl) throw new Error(`.modal__content not found inside ${rootSelector}`);
-    this.content = contentEl as HTMLElement;
+    this.contentContainer = contentEl as HTMLElement;
 
     this.initHandlers();
+  }
+
+  get content(): HTMLElement {
+    return this.contentContainer;
   }
 
   private initHandlers() {
@@ -36,5 +40,10 @@ export default class Modal {
     document.body.style.overflow = '';
     this.root.classList.remove('modal_active');
     document.removeEventListener('keydown', this.escHandler);
+  }
+
+  setContent(content: HTMLElement): void {
+    this.contentContainer.innerHTML = '';
+    this.contentContainer.appendChild(content);
   }
 }

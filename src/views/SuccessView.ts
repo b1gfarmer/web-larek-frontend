@@ -1,27 +1,32 @@
-
 export class SuccessView {
   private container: HTMLElement;
+  private closeButton: HTMLButtonElement | null = null;
+  private description: HTMLElement | null = null;
   private onCloseCallback: () => void = () => {};
 
   constructor(container: HTMLElement) {
     this.container = container;
+
+    this.container.innerHTML = `
+      <div class="order-success">
+        <h2 class="order-success__title">Заказ оформлен</h2>
+        <p class="order-success__description"></p>
+        <button class="button order-success__close">За новыми покупками!</button>
+      </div>
+    `;
+    this.description = this.container.querySelector('.order-success__description');
+    this.closeButton = this.container.querySelector('.order-success__close');
+    this.closeButton?.addEventListener('click', () => this.onCloseCallback());
   }
 
-  /** Presenter подписывается, чтобы закрыть модалку по кнопке «За новыми покупками!» */
   onClose(callback: () => void): void {
     this.onCloseCallback = callback;
   }
 
-  /** Отрисовать сообщение об успешном заказе */
-  render(total: number): void {
-    this.container.innerHTML = `
-      <div class="order-success">
-        <h2 class="order-success__title">Заказ оформлен</h2>
-        <p class="order-success__description">Списано ${total} синапсов</p>
-        <button class="button order-success__close">За новыми покупками!</button>
-      </div>
-    `;
-    const btnClose = this.container.querySelector('button.order-success__close') as HTMLButtonElement;
-    btnClose.addEventListener('click', () => this.onCloseCallback());
+  render(total: number): HTMLElement {
+    if (this.description) {
+      this.description.textContent = `Списано ${total} синапсов`;
+    }
+    return this.container;
   }
 }
