@@ -1,87 +1,78 @@
-// src/views/OrderView.ts
+
 
 export class OrderView {
-  private container: HTMLElement;
+  private formElement: HTMLFormElement;
   private paymentButtons: NodeListOf<HTMLButtonElement>;
   private addressInput: HTMLInputElement;
   private submitBtn: HTMLButtonElement;
-  private selectedPayment: 'card' | 'cash' | null = null;
 
   private onInputCallback: (field: 'payment' | 'address', value: string) => void = () => {};
   private onSubmitCallback: () => void = () => {};
 
-  constructor(container: HTMLElement) {
-    this.container = container;
+  constructor(private container: HTMLElement) {
+    // Клонируем шаблон <template id="order"> из index.html
+    const template = document.getElementById('order') as HTMLTemplateElement;
+    const content = template.content.cloneNode(true) as DocumentFragment;
+    this.container.appendChild(content);
 
-    this.container.innerHTML = `
-      <form class="form" name="order">
-        <div class="order">
-          <div class="order__field">
-            <h2 class="modal__title">Способ оплаты</h2>
-            <div class="order__buttons">
-              <button type="button" class="button button_alt" data-type="card">Онлайн</button>
-              <button type="button" class="button button_alt" data-type="cash">При получении</button>
-            </div>
-          </div>
-          <label class="order__field">
-            <span class="form__label modal__title">Адрес доставки</span>
-            <input name="address" class="form__input" type="text" placeholder="Введите адрес" />
-          </label>
-        </div>
-        <div class="modal__actions">
-          <button type="submit" disabled class="button order__button">Далее</button>
-        </div>
-      </form>
-    `;
+    // Находим саму форму и её элементы
+    this.formElement = this.container.querySelector('form[name="order"]')! as HTMLFormElement;
+    this.paymentButtons = this.formElement.querySelectorAll('button.button_alt') as NodeListOf<HTMLButtonElement>;
+    this.addressInput = this.formElement.querySelector('input[name="address"]')! as HTMLInputElement;
+    this.submitBtn = this.formElement.querySelector('button[type="submit"]')! as HTMLButtonElement;
 
-    const form = this.container.querySelector('form')!;
-    this.paymentButtons = form.querySelectorAll('button[data-type]');
-    this.addressInput = form.querySelector('input[name="address"]')!;
-    this.submitBtn = form.querySelector('button[type="submit"]')!;
-
-    this.paymentButtons.forEach(button => {
+    // Обработка клика по способу оплаты
+    this.paymentButtons.forEach((button) => {
       button.addEventListener('click', () => {
-        const type = button.dataset.type;
-        if (type === 'card' || type === 'cash') {
-          this.selectedPayment = type;
-          this.paymentButtons.forEach(b => b.classList.remove('button_alt-active'));
+        const paymentType = button.getAttribute('name'); // name="card" или name="cash"
+        if (paymentType === 'card' || paymentType === 'cash') {
+          // Снимаем класс у всех, добавляем активный класс к выбранному
+          this.paymentButtons.forEach((b) => b.classList.remove('button_alt-active'));
           button.classList.add('button_alt-active');
-          this.onInputCallback('payment', type);
+          this.onInputCallback('payment', paymentType);
         }
       });
     });
 
+    // Обработка ввода адреса
     this.addressInput.addEventListener('input', () => {
-      this.onInputCallback('address', this.addressInput.value.trim());
+      const value = this.addressInput.value.trim();
+      this.onInputCallback('address', value);
     });
 
-    form.addEventListener('submit', (e) => {
+    // Отправка формы “Далее”
+    this.formElement.addEventListener('submit', (e) => {
       e.preventDefault();
       this.onSubmitCallback();
     });
   }
 
-  /** Presenter подписывается на изменения полей формы */
+  /**
+   * Presenter подписывается на изменения полей формы (payment / address)
+   */
   onInput(callback: (field: 'payment' | 'address', value: string) => void): void {
     this.onInputCallback = callback;
   }
 
-  /** Presenter подписывается на нажатие «Далее» */
+  /**
+   * Presenter подписывается на сабмит (кнопка “Далее”)
+   */
   onSubmit(callback: () => void): void {
     this.onSubmitCallback = callback;
   }
 
   /**
-   * Обновить состояния формы (заполненное значение + активная кнопка + валидность)
+   * Обновить состояние формы: выставить значение поля “Адрес“, 
+   * отметить активную кнопку оплаты и включить/отключить кнопку “Далее”
    * @param address — текущее значение адреса
-   * @param payment  — 'card' | 'cash' | null
-   * @param isValid  — true, если оба поля заполнены валидно
+   * @param payment — 'card' | 'cash' | null
+   * @param isValid — true, если оба поля валидны (и способ оплаты, и адрес заполнены)
    */
   setFormState(address: string, payment: 'card' | 'cash' | null, isValid: boolean): void {
-    this.addressInput.value = address;
+    this.addressInput.value = address || '';
 
-    this.paymentButtons.forEach(b => {
-      if (b.dataset.type === payment) {
+    this.paymentButtons.forEach((b) => {
+      if (b.getAttribute('name') === payment) {
         b.classList.add('button_alt-active');
       } else {
         b.classList.remove('button_alt-active');
@@ -91,7 +82,9 @@ export class OrderView {
     this.submitBtn.disabled = !isValid;
   }
 
-  /** Возвращает корневой элемент для модалки */
+  /**
+   * Возвращает корневой элемент, чтобы Presenter мог показать этот View в модалке
+   */
   render(): HTMLElement {
     return this.container;
   }

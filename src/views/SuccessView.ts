@@ -1,3 +1,4 @@
+
 export class SuccessView {
   private container: HTMLElement;
   private closeButton: HTMLButtonElement | null = null;
@@ -7,6 +8,7 @@ export class SuccessView {
   constructor(container: HTMLElement) {
     this.container = container;
 
+    // Строим разметку “Успеха” в конструкторе
     this.container.innerHTML = `
       <div class="order-success">
         <h2 class="order-success__title">Заказ оформлен</h2>
@@ -14,19 +16,31 @@ export class SuccessView {
         <button class="button order-success__close">За новыми покупками!</button>
       </div>
     `;
-    this.description = this.container.querySelector('.order-success__description');
-    this.closeButton = this.container.querySelector('.order-success__close');
-    this.closeButton?.addEventListener('click', () => this.onCloseCallback());
+
+    this.description = this.container.querySelector(
+      '.order-success__description'
+    );
+    this.closeButton = this.container.querySelector(
+      '.order-success__close'
+    ) as HTMLButtonElement;
+
+    this.closeButton?.addEventListener('click', () => {
+      this.onCloseCallback();
+    });
   }
 
-  onClose(callback: () => void): void {
-    this.onCloseCallback = callback;
-  }
-
+  /**
+   * Вызов в Presenter:
+   *   this.modal.setContent(this.successView.render(result.total));
+   */
   render(total: number): HTMLElement {
     if (this.description) {
       this.description.textContent = `Списано ${total} синапсов`;
     }
     return this.container;
+  }
+
+  onClose(callback: () => void): void {
+    this.onCloseCallback = callback;
   }
 }

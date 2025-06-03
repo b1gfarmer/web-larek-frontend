@@ -1,4 +1,6 @@
+
 export class ContactsView {
+  private formElement: HTMLFormElement;
   private emailInput: HTMLInputElement;
   private phoneInput: HTMLInputElement;
   private submitBtn: HTMLButtonElement;
@@ -8,63 +10,74 @@ export class ContactsView {
   private onSubmitCallback: () => void = () => {};
 
   constructor(private container: HTMLElement) {
-    this.container.innerHTML = `
-      <form class="form">
-        <label class="order__field">
-          <span class="form__label modal__title">Email</span>
-          <input name="email" class="form__input" type="email" />
-        </label>
-        <label class="order__field">
-          <span class="form__label modal__title">Телефон</span>
-          <input name="phone" class="form__input" type="tel" />
-        </label>
-        <div class="modal__actions">
-          <button type="submit" disabled class="button">Оплатить</button>
-          <span class="form__errors"></span>
-        </div>
-      </form>
-    `;
+    // Клонируем шаблон <template id="contacts"> из index.html
+    const template = document.getElementById('contacts') as HTMLTemplateElement;
+    const content = template.content.cloneNode(true) as DocumentFragment;
+    this.container.appendChild(content);
 
-    const form = this.container.querySelector('form')!;
-    this.emailInput = form.querySelector('input[name="email"]')!;
-    this.phoneInput = form.querySelector('input[name="phone"]')!;
-    this.submitBtn = form.querySelector('button[type="submit"]')!;
-    this.errorSpan = form.querySelector('.form__errors')!;
+    // Находим саму форму и её поля
+    this.formElement = this.container.querySelector('form[name="contacts"]')! as HTMLFormElement;
+    this.emailInput = this.formElement.querySelector('input[name="email"]')! as HTMLInputElement;
+    this.phoneInput = this.formElement.querySelector('input[name="phone"]')! as HTMLInputElement;
+    this.submitBtn = this.formElement.querySelector('button[type="submit"]')! as HTMLButtonElement;
+    this.errorSpan = this.formElement.querySelector('.form__errors')! as HTMLElement;
 
+    // Подпишемся на изменения полей: при любом вводе в инпуты вызываем коллбэк-презентеру
     this.emailInput.addEventListener('input', () => {
-      this.onInputCallback('email', this.emailInput.value.trim());
+      const value = this.emailInput.value.trim();
+      this.onInputCallback('email', value);
     });
-
     this.phoneInput.addEventListener('input', () => {
-      this.onInputCallback('phone', this.phoneInput.value.trim());
+      const value = this.phoneInput.value.trim();
+      this.onInputCallback('phone', value);
     });
 
-    form.addEventListener('submit', (e) => {
+    // Обработчик сабмита формы
+    this.formElement.addEventListener('submit', (e) => {
       e.preventDefault();
       this.onSubmitCallback();
     });
   }
 
+  /**
+   * Presenter подписывается на изменения полей (email / phone)
+   */
   onInput(callback: (field: 'email' | 'phone', value: string) => void): void {
     this.onInputCallback = callback;
   }
 
+  /**
+   * Presenter подписывается на отправку формы “Оплатить”
+   */
   onSubmit(callback: () => void): void {
     this.onSubmitCallback = callback;
   }
 
+  /**
+   * Обновление состояния формы: перезаписываем значения полей, 
+   * а кнопка “Оплатить” активируется/деактивируется в зависимости от isValid.
+   * @param email — текущее значение поля email
+   * @param phone — текущее значение поля phone
+   * @param isValid — true, если оба поля прошли валидацию
+   */
   setFormState(email: string, phone: string, isValid: boolean): void {
-    this.emailInput.value = email;
-    this.phoneInput.value = phone;
+    // Вставляем только непустые строки, иначе оставляем пустое
+    this.emailInput.value = email || '';
+    this.phoneInput.value = phone || '';
     this.submitBtn.disabled = !isValid;
   }
 
+  /**
+   * Показать текст ошибки под формой (например, “Неверный формат email” или “Ошибка при оформлении заказа”)
+   */
   showError(message: string): void {
-    this.errorSpan.textContent = message;
+    this.errorSpan.textContent = message || '';
   }
 
+  /**
+   * Возвращает корневой элемент, чтобы Presenter мог вывести его в модалку.
+   */
   render(): HTMLElement {
     return this.container;
   }
 }
-
